@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>1097178954991-la5vvatma04lehsm09uv0ct990bsfepq.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.1097178954991-la5vvatma04lehsm09uv0ct990bsfepq</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>1097178954991-9f3nakil4d8f2jraioracavh2b5frt7q.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCnZoHBDvmSPSdElx1HFWU0rNs3_EmqQG4</string>
+	<key>GCM_SENDER_ID</key>
+	<string>1097178954991</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.neomunk.buzzhive</string>
+	<key>PROJECT_ID</key>
+	<string>buzz-hive-firebase</string>
+	<key>STORAGE_BUCKET</key>
+	<string>buzz-hive-firebase.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:1097178954991:ios:0cac45503ff04f37bfaf1a</string>
+</dict>
+</plist>

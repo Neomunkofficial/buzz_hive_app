@@ -1,35 +1,35 @@
-import 'package:buzz_hive_app/Colors/AppColors.dart';
-import 'package:buzz_hive_app/Screens/Onboarding/LandingPages/LandingPage.dart';
+// main.dart
+import 'package:buzz_hive_app/presentaion/screens/onboarding/onboarding_flow/onboarding_phone_screen.dart';
 import 'package:flutter/material.dart';
-
-import 'Screens/Onboarding/LandingPages/Landingdark.dart';
+import 'config/theme/app_theme.dart';
+import 'presentaion/screens/onboarding/landing_screen.dart';
+import 'state/onboarding_provider.dart';
+import 'package:provider/provider.dart'; // add provider:^6.x in pubspec
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => OnboardingProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primaryColor:AppColors.primary,
-      ),
-      initialRoute:'Landingdark',
+      title: 'Buzz Hive',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const LandingScreen(),
       routes: {
-        'LandingPage':(_) => LandingPage(),
-        'Landingdark':(_) => Landingdark()
+        '/onboarding/phone': (_) => const OnboardingPhoneScreen(),
+        // We’ll push the rest with MaterialPageRoute to allow passing args cleanly.
       },
-
     );
   }
 }
-
-
-
-
