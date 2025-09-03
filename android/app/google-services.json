@@ -7,17 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1097178954991:android:15b3cd1cb609f68bbfaf1a",
+        "mobilesdk_app_id": "1:1097178954991:android:83ac0566e37634c5bfaf1a",
         "android_client_info": {
-          "package_name": "com.neomunk.buzzhive"
+          "package_name": "com.example.buzz_hive_app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1097178954991-9f3nakil4d8f2jraioracavh2b5frt7q.apps.googleusercontent.com",
+          "client_id": "1097178954991-i54bkbm6r0hmo4hrqmftk3cih41i0qk1.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.neomunk.buzzhive",
+            "package_name": "com.example.buzz_hive_app",
             "certificate_hash": "79f1dd25d43dcc13d27101e1c3e40df7cfe3d04c"
           }
         },
@@ -37,6 +37,13 @@
             {
               "client_id": "1097178954991-8do44qju6oe5e632vbv88and75n3j6hv.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1097178954991-la5vvatma04lehsm09uv0ct990bsfepq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.neomunk.buzzhive"
+              }
             }
           ]
         }

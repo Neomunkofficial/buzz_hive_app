@@ -3,7 +3,7 @@ import '../../../../config/Colors/AppColors.dart';
 
 class AppButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed; // ✅ Changed to nullable VoidCallback?
   final Color backgroundColor;
   final Color textColor;
   final double? width;
@@ -17,7 +17,7 @@ class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    required this.onPressed, // This can now be null for disabled state
     this.backgroundColor = AppColors.primaryYellow,
     this.textColor = AppColors.lightText,
     this.width,
@@ -35,7 +35,7 @@ class AppButton extends StatelessWidget {
       width: width ?? double.infinity, // default full width
       height: height ?? 56, // default height
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: onPressed, // ✅ This now properly handles null for disabled state
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: textColor,

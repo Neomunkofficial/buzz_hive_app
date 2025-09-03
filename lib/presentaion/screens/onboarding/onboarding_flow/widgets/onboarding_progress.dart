@@ -1,5 +1,6 @@
 // presentation/screens/onboarding_flow/widgets/onboarding_progress.dart
 import 'package:flutter/material.dart';
+import '../../../../../config/Colors/AppColors.dart';
 
 class OnboardingProgress extends StatelessWidget {
   final int step; // 1..8
@@ -10,9 +11,13 @@ class OnboardingProgress extends StatelessWidget {
     final pct = step / 8;
     return Column(
       children: [
-        Text("Step $step of 8", style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 8),
-        LinearProgressIndicator(value: pct),
+        LinearProgressIndicator(
+          value: pct,
+          color: AppColors.primaryYellow,
+          backgroundColor: AppColors.primaryYellow.withOpacity(0.2),
+        ),
+
         const SizedBox(height: 16),
       ],
     );
