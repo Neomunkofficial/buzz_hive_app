@@ -5,9 +5,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
 import 'onboarding_state.dart';
 
+// state/onboarding_provider.dart
+
 class OnboardingProvider extends ChangeNotifier {
   OnboardingState _state = const OnboardingState();
   OnboardingState get state => _state;
+
+  String get phone => _state.phone;
+
 
   bool _isSubmitting = false;
   bool get isSubmitting => _isSubmitting;
@@ -15,6 +20,7 @@ class OnboardingProvider extends ChangeNotifier {
   String? _submissionError;
   String? get submissionError => _submissionError;
 
+  // ------------------- SETTERS -------------------
   void setPhone(String v)         { _state = _state.copyWith(phone: v); notifyListeners(); }
   void setOtp(String v)           { _state = _state.copyWith(otp: v); notifyListeners(); }
   void setFirstName(String v)     { _state = _state.copyWith(firstName: v); notifyListeners(); }
@@ -34,12 +40,32 @@ class OnboardingProvider extends ChangeNotifier {
   void setVerificationId(String id) { _state = _state.copyWith(verificationId: id); notifyListeners(); }
   void setBackendToken(String? t) { _state = _state.copyWith(backendToken: t); notifyListeners(); }
 
+  // ✅ NEW METHODS for I-Card
+  void setFrontICardUrl(String url) {
+    _state = _state.copyWith(frontICardUrl: url);
+    notifyListeners();
+  }
+
+  void setBackICardUrl(String url) {
+    _state = _state.copyWith(backICardUrl: url);
+    notifyListeners();
+  }
+
+  void setInterests(List<String> list) {
+    _state = _state.copyWith(interests: list);
+    debugPrint("✅ Interests stored in provider: ${_state.interests}");
+    notifyListeners();
+  }
+
+
+
+
   // Aliases for consistency with your screen code
   void setCollegeId(String v)     => setCollege(v);
   void setDepartmentId(String v)  => setProgram(v);
   void setBatchYear(String v)     => setYear(v);
 
-  /// Submit all onboarding data to backend - call this from your final onboarding screen
+  /// Submit all onboarding data to backend
   Future<bool> submitOnboardingData() async {
     _isSubmitting = true;
     _submissionError = null;
@@ -59,9 +85,12 @@ class OnboardingProvider extends ChangeNotifier {
         'dob': _state.dateOfBirth,
         'gender': _state.gender,
         'college_id': _state.collegeId.isNotEmpty ? _state.collegeId : null,
-        'department_id': _state.program.isNotEmpty ? _state.program : null, // Changed to department_id
+        'department_id': _state.program.isNotEmpty ? _state.program : null,
         'batch_year': _state.year.isNotEmpty ? int.tryParse(_state.year) : null,
         'interests': _state.interests,
+        // ✅ Include uploaded I-Card URLs
+        'front_icard_url': _state.frontICardUrl,
+        'back_icard_url': _state.backICardUrl,
       };
 
       print("🚀 Submitting onboarding data:");
@@ -110,86 +139,5 @@ class OnboardingProvider extends ChangeNotifier {
     _isSubmitting = false;
     _submissionError = null;
     notifyListeners();
-  }
-}
-
-// state/onboarding_state.dart
-class OnboardingState {
-  final String? backendToken;
-  final String phone;
-  final String otp;
-  final String firstName;
-  final String lastName;
-  final String? dateOfBirth;
-  final String? gender;
-  final String collegeId;
-  final String program;
-  final String year;
-  final List<String> interests;
-  final String? photoLocalPath;
-  final bool acceptedTerms;
-  final String? verificationId;
-
-  const OnboardingState({
-    this.backendToken,
-    this.phone = '',
-    this.otp = '',
-    this.firstName = '',
-    this.lastName = '',
-    this.dateOfBirth,
-    this.gender,
-    this.collegeId = '',
-    this.program = '',
-    this.year = '',
-    this.interests = const [],
-    this.photoLocalPath,
-    this.acceptedTerms = false,
-    this.verificationId,
-  });
-
-  OnboardingState copyWith({
-    String? backendToken,
-    String? phone,
-    String? otp,
-    String? firstName,
-    String? lastName,
-    String? dateOfBirth,
-    String? gender,
-    String? collegeId,
-    String? program,
-    String? year,
-    List<String>? interests,
-    String? photoLocalPath,
-    bool? acceptedTerms,
-    String? verificationId,
-  }) =>
-      OnboardingState(
-        backendToken: backendToken ?? this.backendToken,
-        phone: phone ?? this.phone,
-        otp: otp ?? this.otp,
-        firstName: firstName ?? this.firstName,
-        lastName: lastName ?? this.lastName,
-        dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-        gender: gender ?? this.gender,
-        collegeId: collegeId ?? this.collegeId,
-        program: program ?? this.program,
-        year: year ?? this.year,
-        interests: interests ?? this.interests,
-        photoLocalPath: photoLocalPath ?? this.photoLocalPath,
-        acceptedTerms: acceptedTerms ?? this.acceptedTerms,
-        verificationId: verificationId ?? this.verificationId,
-      );
-
-  /// Get all data for logging/debugging
-  Map<String, dynamic> getAllOnboardingData() {
-    return {
-      'name': firstName.isNotEmpty ? '${firstName} ${lastName}'.trim() : null,
-      'dob': dateOfBirth,
-      'gender': gender,
-      'college_id': collegeId.isNotEmpty ? collegeId : null,
-      'department_id': program.isNotEmpty ? program : null,
-      'batch_year': year.isNotEmpty ? int.tryParse(year) : null,
-      'interests': interests,
-    };
   }
 }

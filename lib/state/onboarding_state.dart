@@ -3,10 +3,12 @@ class OnboardingState {
   final String? backendToken;
   final String phone;
   final String otp;
+  final String? frontICardUrl;
+  final String? backICardUrl;
   final String firstName;
   final String lastName;
-  final String? dateOfBirth;    // ADD THIS
-  final String? gender;         // ADD THIS
+  final String? dateOfBirth;
+  final String? gender;
   final String collegeId;
   final String program;
   final String year;
@@ -19,10 +21,12 @@ class OnboardingState {
     this.backendToken,
     this.phone = '',
     this.otp = '',
+    this.frontICardUrl,
+    this.backICardUrl,
     this.firstName = '',
     this.lastName = '',
-    this.dateOfBirth,           // ADD THIS
-    this.gender,                // ADD THIS
+    this.dateOfBirth,
+    this.gender,
     this.collegeId = '',
     this.program = '',
     this.year = '',
@@ -36,10 +40,12 @@ class OnboardingState {
     String? backendToken,
     String? phone,
     String? otp,
+    String? frontICardUrl,
+    String? backICardUrl,
     String? firstName,
     String? lastName,
-    String? dateOfBirth,        // ADD THIS
-    String? gender,             // ADD THIS
+    String? dateOfBirth,
+    String? gender,
     String? collegeId,
     String? program,
     String? year,
@@ -52,10 +58,12 @@ class OnboardingState {
         backendToken: backendToken ?? this.backendToken,
         phone: phone ?? this.phone,
         otp: otp ?? this.otp,
+        frontICardUrl: frontICardUrl ?? this.frontICardUrl,
+        backICardUrl: backICardUrl ?? this.backICardUrl,
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
-        dateOfBirth: dateOfBirth ?? this.dateOfBirth,     // ADD THIS
-        gender: gender ?? this.gender,                     // ADD THIS
+        dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+        gender: gender ?? this.gender,
         collegeId: collegeId ?? this.collegeId,
         program: program ?? this.program,
         year: year ?? this.year,
@@ -65,17 +73,19 @@ class OnboardingState {
         verificationId: verificationId ?? this.verificationId,
       );
 
-  // ADD THIS METHOD - to get all data for API call
+  /// Get all data for logging/debugging
   Map<String, dynamic> getAllOnboardingData() {
     return {
-      'name': firstName.isNotEmpty ? firstName : null,
+      'name': firstName.isNotEmpty ? '${firstName} ${lastName}'.trim() : null,
       'dob': dateOfBirth,
       'gender': gender,
       'college_id': collegeId.isNotEmpty ? collegeId : null,
-      'department': program.isNotEmpty ? program : null,
+      'department_id': program.isNotEmpty ? program : null,
       'batch_year': year.isNotEmpty ? int.tryParse(year) : null,
       'interests': interests,
-      // Add more fields as needed for other screens
+      // ✅ Added I-Card URLs for debug/logging
+      'front_icard_url': frontICardUrl,
+      'back_icard_url': backICardUrl,
     };
   }
 }

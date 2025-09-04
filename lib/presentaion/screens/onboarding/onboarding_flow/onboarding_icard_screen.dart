@@ -1,8 +1,14 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:buzz_hive_app/presentaion/screens/onboarding/onboarding_flow/widgets/onboarding_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+
 import '../../../../config/Colors/AppColors.dart';
+import '../../../../state/onboarding_provider.dart';
 import '../../../widgets/app_button.dart';
 import 'onboarding_interests_screen.dart';
 
@@ -20,7 +26,7 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
 
   Future<void> _pickImage(bool isFront) async {
     final XFile? picked = await _picker.pickImage(
-      source: ImageSource.gallery, // can switch to camera if you want
+      source: ImageSource.gallery,
       imageQuality: 80,
     );
     if (picked != null) {
@@ -34,7 +40,47 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
     }
   }
 
-  void _onSubmit() {
+  Future<String?> _uploadICard(File file) async {
+    try {
+      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+
+      final phone = context.read<OnboardingProvider>().phone;
+      if (phone.isEmpty) {
+        debugPrint("❌ Phone number is missing in OnboardingProvider");
+        return null;
+      }
+
+      const String baseUrl = "http://192.168.1.10:5000";
+
+      final uri = Uri.parse("$baseUrl/api/upload/icard/$phone");
+      debugPrint("📡 Uploading I-Card to: $uri");
+
+      final request = http.MultipartRequest("POST", uri)
+        ..headers["Authorization"] = "Bearer $token"
+        ..files.add(await http.MultipartFile.fromPath("icard", file.path)); // ✅ must be "icard"
+
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        final respStr = await response.stream.bytesToString();
+        final data = json.decode(respStr);
+
+        // ✅ Fix: use `fileUrl` and prepend baseUrl
+        final url = "$baseUrl${data["fileUrl"]}";
+        debugPrint("✅ Uploaded I-Card: $url");
+        return url;
+      } else {
+        debugPrint("❌ Upload failed ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      debugPrint("❌ Error uploading I-Card: $e");
+      return null;
+    }
+  }
+
+
+  void _onSubmit() async {
     if (_frontImage == null || _backImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please upload both sides of your I-Card")),
@@ -42,23 +88,149 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
       return;
     }
 
-    // Prepare payload for backend integration
-    // Example: multipart upload -> Node.js -> store meta in Postgres
-    final payload = {
-      "front": _frontImage,
-      "back": _backImage,
-    };
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      debugPrint("❌ User not logged in");
+      return;
+    }
 
-    debugPrint("Ready to upload I-Card: $payload");
+    // Upload both images
+    final frontUrl = await _uploadICard(_frontImage!);
+    final backUrl = await _uploadICard(_backImage!);
 
-    // TODO: Replace with your API integration
-    // Example: call provider / dio / http multipart request
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OnboardingInterestsScreen(interests: ['signing','dancing','petting','ai','ml','cloud','football','batting','signing','dancing','petting','ai','ml','cloud','football','batting','signing','dancing','petting','ai','ml','cloud','football','batting','signing','dancing','petting','ai','ml','cloud','football','batting'],),
-      ),
-    );
+    if (frontUrl != null && backUrl != null && mounted) {
+      final provider = Provider.of<OnboardingProvider>(context, listen: false);
+      provider.setFrontICardUrl(frontUrl);
+      provider.setBackICardUrl(backUrl);
+
+      debugPrint("✅ Front I-Card URL saved: $frontUrl");
+      debugPrint("✅ Back I-Card URL saved: $backUrl");
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const OnboardingInterestsScreen(
+            interests: [
+              "Engineering",
+              "Medicine & Healthcare",
+              "Business & Management",
+              "Arts & Humanities",
+              "Law & Policy",
+              "Commerce & Finance",
+              "Pure Sciences",
+              "Artificial Intelligence (AI)",
+              "Machine Learning (ML)",
+              "Cloud Computing",
+              "Cybersecurity",
+              "Web Development",
+              "App Development",
+              "Blockchain & Web3",
+              "Data Science",
+              "Competitive Programming",
+              "Robotics",
+              "Entrepreneurship / Startups",
+              "Marketing & Advertising",
+              "Finance & Investing",
+              "Public Speaking & Debating",
+              "Model United Nations (MUN)",
+              "Consulting",
+              "Content Creation",
+              "Cricket",
+              "Football",
+              "Basketball",
+              "Volleyball",
+              "Kabaddi",
+              "Hockey",
+              "Badminton",
+              "Tennis",
+              "Table Tennis",
+              "Swimming",
+              "Athletics",
+              "Martial Arts",
+              "Chess",
+              "Gym & Working Out",
+              "Yoga & Meditation",
+              "Running / Marathons",
+              "Cycling",
+              "Trekking & Hiking",
+              "Calisthenics",
+              "Singing (Indian Classical)",
+              "Singing (Western)",
+              "Bollywood Music",
+              "Playing Guitar",
+              "Playing Piano / Keyboard",
+              "Playing Drums / Tabla",
+              "DJing & Music Production",
+              "Bollywood Dance",
+              "Hip-Hop",
+              "Bhangra / Gidda",
+              "Indian Classical Dance",
+              "Contemporary Dance",
+              "Sketching & Painting",
+              "Digital Art & Design",
+              "Photography",
+              "Videography & Filmmaking",
+              "Creative Writing",
+              "Poetry & Shayri",
+              "Blogging",
+              "Stand-up Comedy",
+              "Theatre & Dramatics",
+              "Bollywood Movies",
+              "Hollywood Movies",
+              "Regional Cinema",
+              "Anime",
+              "K-Dramas",
+              "Sci-Fi & Fantasy",
+              "Thrillers & Mystery",
+              "Web Series",
+              "Desi Hip Hop",
+              "Pop / EDM",
+              "Rock / Metal",
+              "Indie & Alternative",
+              "Lo-Fi & Chillhop",
+              "Sufi & Classical",
+              "Fiction Novels",
+              "Non-Fiction / Biographies",
+              "Fantasy & Sci-Fi Books",
+              "Comic Books & Graphic Novels",
+              "Podcasts",
+              "YouTube & Vlogging",
+              "Memes & Pop Culture",
+              "PC/Console Gaming",
+              "FPS Games",
+              "Battle Royale Games",
+              "Story-driven Games (RPG)",
+              "Sports Games (FIFA, etc.)",
+              "Mobile Gaming",
+              "Strategy Games",
+              "Foodie / Exploring Cafes",
+              "Cooking & Baking",
+              "Street Food",
+              "Coffee / Chai Lover",
+              "Backpacking",
+              "Road Trips",
+              "Exploring Cities",
+              "Nature & Wildlife",
+              "Volunteering",
+              "Animal Lover / Petting",
+              "Environmental Causes",
+              "Clubbing & Partying",
+              "Organizing Events",
+              "Attending College Fests",
+              "Fashion & Styling",
+              "Gardening",
+              "Astrology",
+              "DIY & Crafts",
+              "Automobiles (Cars & Bikes)"
+            ],
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to upload I-Card")),
+      );
+    }
   }
 
   @override
@@ -74,12 +246,8 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Progress bar
               const OnboardingProgress(step: 5),
-
               const SizedBox(height: 30),
-
-              // Illustration
               SizedBox(
                 height: size.height * 0.26,
                 child: Image.asset(
@@ -87,10 +255,7 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
                   fit: BoxFit.contain,
                 ),
               ),
-
               const SizedBox(height: 12),
-
-              // Heading
               Text.rich(
                 TextSpan(
                   children: [
@@ -115,9 +280,7 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-
               const SizedBox(height: 6),
-
               Text(
                 "Verified users get the cool blue check ✅ next to their name",
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -126,10 +289,7 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-
               const SizedBox(height: 20),
-
-              // Upload boxes
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -145,10 +305,7 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 40),
-
-              // Submit button
               AppButton(
                 text: "Lock it in ➝",
                 backgroundColor: AppColors.primaryYellow,
@@ -164,7 +321,7 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
   }
 }
 
-/// ----- Local Upload Box -----
+/// ----- Upload Box Widget -----
 class _UploadBox extends StatelessWidget {
   final String label;
   final File? file;

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../config/Colors/AppColors.dart';
 import '../../../widgets/app_button.dart';
 import '../../../widgets/app_search_bar.dart';
 import 'onboarding_photo_screen.dart';
 import 'widgets/onboarding_progress.dart';
+import '../../../../state/onboarding_provider.dart';
 
 class OnboardingInterestsScreen extends StatefulWidget {
   final List<String> interests; // from backend
@@ -31,8 +33,16 @@ class _OnboardingInterestsScreenState extends State<OnboardingInterestsScreen> {
   }
 
   void _submitInterests() {
-    debugPrint("Selected Interests: $_selectedInterests");
-    // TODO: Call Node.js API to save interest
+    final provider = Provider.of<OnboardingProvider>(context, listen: false);
+
+    // ✅ Update provider with selected interests
+    provider.setInterests(_selectedInterests.toList());
+
+    // ✅ Debug prints for assurance
+    debugPrint("🎯 Selected Interests (local): $_selectedInterests");
+    debugPrint("📦 Provider Interests: ${provider.state.interests}");
+
+    // Move to next onboarding step
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const OnboardingPhotoScreen()),
@@ -54,15 +64,42 @@ class _OnboardingInterestsScreenState extends State<OnboardingInterestsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            /// 🔼 Top Section (non-scrollable)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+            /// 🔼 Top Section with 3D effect container
+            Container(
+
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withOpacity(0.3)
+                        : Colors.grey.withOpacity(0.15),
+                    offset: const Offset(0, 4),
+                    blurRadius: 12,
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.02)
+                        : Colors.white.withOpacity(0.8),
+                    offset: const Offset(0, -2),
+                    blurRadius: 8,
+                    spreadRadius: 0,
+                  ),
+                ],
+                border: Border.all(
+                  color: isDark
+                      ? Colors.grey.withOpacity(0.2)
+                      : Colors.grey.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const OnboardingProgress(step: 6),
-
-                  // Back button
 
                   RichText(
                     text: TextSpan(
@@ -90,16 +127,63 @@ class _OnboardingInterestsScreenState extends State<OnboardingInterestsScreen> {
                     ),
                   ),
 
-                  Text(
-                    "Flex your talents & interests. The Hive wants to know",
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: 14,
-                      color:
-                      isDark ? AppColors.darkText : AppColors.lightText,
-                    ),
+                  const SizedBox(height: 8),
+
+                  // 🎨 Use a Wrap widget to prevent overflow and arrange children dynamically.
+                  Wrap(
+                    // Aligns children with space between them on the horizontal axis.
+                    alignment: WrapAlignment.spaceEvenly,
+                    // Vertically centers the text and the counter badge.
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    // Adds vertical space between lines if the content wraps.
+                    runSpacing: 10.0,
+                    children: [
+                      // The main descriptive text.
+                      Text(
+                        "Flex your talents & interests. The Hive wants to know",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 14,
+                          color: isDark ? AppColors.darkText : AppColors.lightText,
+                        ),
+                      ),
+
+                      // The counter badge, which appears only when interests are selected.
+                      if (_selectedInterests.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryYellow.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppColors.primaryYellow.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                color: AppColors.primaryYellow,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                "${_selectedInterests.length} selected",
+                                style: TextStyle(
+                                  color: isDark ? AppColors.darkText : AppColors.lightText,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: "Font3",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   AppSearchBar(
                     controller: _searchController,
@@ -107,46 +191,77 @@ class _OnboardingInterestsScreenState extends State<OnboardingInterestsScreen> {
                       setState(() => _searchQuery = query);
                     },
                   ),
+
+
                 ],
               ),
             ),
 
-            const SizedBox(height: 10),
 
-            /// 🔽 Scrollable Interests Section
+
+
+            /// 🔽 Scrollable Interests Section - Redesigned Pills
             Expanded(
               child: SingleChildScrollView(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
                 child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
+                  spacing: 8, // Reduced spacing like in reference
+                  runSpacing: 8, // Reduced spacing like in reference
                   children: filteredInterests.map((interest) {
                     final isSelected = _selectedInterests.contains(interest);
                     return GestureDetector(
                       onTap: () => _toggleInterest(interest),
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
+                          horizontal: 14, // Smaller padding like reference
+                          vertical: 8,    // Smaller padding like reference
+                        ),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? _getColorForInterest(interest)
                               : (isDark
-                              ? Colors.grey[700]
-                              : Colors.grey[300]),
-                          borderRadius: BorderRadius.circular(20),
+                              ? Colors.grey[800]?.withOpacity(0.6)
+                              : Colors.grey[200]?.withOpacity(0.8)),
+                          borderRadius: BorderRadius.circular(18), // Smaller radius like reference
+                          border: Border.all(
+                            color: isSelected
+                                ? _getColorForInterest(interest).withOpacity(0.3)
+                                : (isDark
+                                ? Colors.grey[600]!.withOpacity(0.3)
+                                : Colors.grey[400]!.withOpacity(0.3)),
+                            width: 1,
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                            BoxShadow(
+                              color: _getColorForInterest(interest).withOpacity(0.3),
+                              offset: const Offset(0, 2),
+                              blurRadius: 8,
+                              spreadRadius: 0,
+                            ),
+                          ]
+                              : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              offset: const Offset(0, 1),
+                              blurRadius: 3,
+                              spreadRadius: 0,
+                            ),
+                          ],
                         ),
                         child: Text(
                           interest,
                           style: TextStyle(
                             color: isSelected
-                                ? (isDark ? AppColors.darkText : AppColors.lightText)
+                                ? Colors.white
                                 : (isDark
-                                ? AppColors.darkText
-                                : AppColors.lightText),
-                            fontWeight: FontWeight.w500,
+                                ? AppColors.darkText.withOpacity(0.8)
+                                : AppColors.lightText.withOpacity(0.8)),
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                             fontFamily: "Font3",
+                            fontSize: 13, // Smaller font size like reference
                           ),
                         ),
                       ),
@@ -156,15 +271,20 @@ class _OnboardingInterestsScreenState extends State<OnboardingInterestsScreen> {
               ),
             ),
 
-            /// 🔽 Bottom Button
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20, top: 10),
+            /// 🔽 Bottom Button with enhanced design
+            Container(
+              padding: const EdgeInsets.only(bottom: 24, top: 16),
+              margin: const EdgeInsets.symmetric(horizontal: 22),
               child: AppButton(
                 text: "Lock it in ➝",
                 backgroundColor: AppColors.primaryYellow,
                 textColor: AppColors.lightText,
-                width: size.width * 0.5,
-                onPressed: _submitInterests,
+                width: size.width * 0.6,
+                height: 52,
+                borderRadius: 26,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                onPressed: _selectedInterests.isEmpty ? null : _submitInterests,
               ),
             ),
           ],
