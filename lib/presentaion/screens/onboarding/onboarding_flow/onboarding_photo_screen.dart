@@ -1,6 +1,8 @@
 // presentation/screens/onboarding_flow/onboarding_photo_screen.dart
 
+import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +13,7 @@ import '../onboarding_flow/widgets/onboarding_progress.dart';
 // NEXT screen: update accordingly
 import 'onboarding_interests_screen.dart';
 import 'onboarding_social_media_linking.dart';
+import 'package:http/http.dart' as http;
 
 class OnboardingPhotoScreen extends StatefulWidget {
   const OnboardingPhotoScreen({super.key});
@@ -25,7 +28,10 @@ class _OnboardingPhotoScreenState extends State<OnboardingPhotoScreen> {
   final List<File?> _gallery = List.generate(6, (_) => null);
 
   Future<void> _pickImage(bool isDp, {int? index}) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (picked != null) {
       setState(() {
         if (isDp) {
@@ -37,36 +43,92 @@ class _OnboardingPhotoScreenState extends State<OnboardingPhotoScreen> {
     }
   }
 
-  Future<void> _submitAndNext() async {
+  Future<String?> _uploadPhoto(File file, {required bool isDp}) async {
+    try {
+      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+      final phone = context.read<OnboardingProvider>().phone;
+      if (token == null) return null;
+      if (phone.isEmpty) {
+        debugPrint("❌ Phone number missing in provider");
+        return null;
+      }
+
+      const String baseUrl = "http://192.168.1.10:5000";
+
+      // ✅ mirror I-Card endpoints pattern
+      final uri = isDp
+          ? Uri.parse("$baseUrl/api/upload/dp/$phone")
+          : Uri.parse("$baseUrl/api/upload/photos/$phone");
+
+      final request = http.MultipartRequest("POST", uri)
+        ..headers["Authorization"] = "Bearer $token"
+        ..files.add(await http.MultipartFile.fromPath("photo", file.path));
+
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final respStr = await response.stream.bytesToString();
+        final data = json.decode(respStr);
+
+        // expect { fileUrl: "/uploads/..." }
+        final url = "$baseUrl${data["fileUrl"]}";
+        return url;
+      } else {
+        debugPrint("❌ Upload failed: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      debugPrint("❌ Error uploading photo: $e");
+      return null;
+    }
+  }
+
+  Future<void> _onSubmit() async {
     if (_dp == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please set your Hive DP")),
+        const SnackBar(content: Text("Please upload a DP")),
       );
       return;
     }
 
-    // Collect selected gallery images
-    final selectedGallery = _gallery.whereType<File>().toList();
+    // 1) Upload DP
+    final dpUrl = await _uploadPhoto(_dp!, isDp: true);
+    if (dpUrl == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to upload DP")),
+      );
+      return;
+    }
 
-    // Save in provider for state continuity
-    final onboarding = context.read<OnboardingProvider>();
-    // onboarding.setProfilePhoto(_dp!);
-    // onboarding.setGalleryPhotos(selectedGallery);
+    // 2) Upload gallery (keep 6-slot order)
+    final List<String> galleryUrls = List.generate(6, (_) => "");
+    for (int i = 0; i < _gallery.length; i++) {
+      final file = _gallery[i];
+      if (file != null) {
+        final url = await _uploadPhoto(file, isDp: false);
+        if (url != null) galleryUrls[i] = url;
+      }
+    }
 
-    // 🔹 TODO: Integrate with backend here
-    // Example (pseudo-code, replace with real API client):
-    // await UserRepository(ApiClient()).uploadPhotos(
-    //   dp: _dp!,
-    //   gallery: selectedGallery,
-    // );
+    // 3) Save ONLY in provider (no DB write here)
+    if (!mounted) return;
+    final provider = context.read<OnboardingProvider>();
+    provider.setDpUrl(dpUrl);
+    provider.setGalleryUrls(
+      // send only non-empty to backend later, or keep all 6 if you prefer
+      galleryUrls.where((u) => u.isNotEmpty).toList(),
+    );
 
+    debugPrint("✅ DP URL saved in provider: $dpUrl");
+    debugPrint("✅ Gallery URLs saved in provider: ${provider.state.galleryUrls}");
+
+    // 4) Next screen
+    if (!mounted) return;
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => OnboardingSocialMediaLinkingScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => OnboardingSocialMediaLinkingScreen()),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +277,7 @@ class _OnboardingPhotoScreenState extends State<OnboardingPhotoScreen> {
                 backgroundColor: AppColors.primaryYellow,
                 textColor: Colors.black,
                 width: size.width * 0.6,
-                onPressed: _submitAndNext,
+                onPressed: _onSubmit,
               ),
             ],
           ),

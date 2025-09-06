@@ -16,6 +16,12 @@ class OnboardingState {
   final String? photoLocalPath;
   final bool acceptedTerms;
   final String? verificationId;
+  final String? dpUrl;
+  final List<String> galleryUrls;
+  final Map<String, String> socialLinks;
+  final bool showSocialOnProfile;
+  final String? email;
+  final String? password;
 
   const OnboardingState({
     this.backendToken,
@@ -34,6 +40,12 @@ class OnboardingState {
     this.photoLocalPath,
     this.acceptedTerms = false,
     this.verificationId,
+    this.dpUrl,
+    this.galleryUrls = const [],
+    this.socialLinks = const {},
+    this.showSocialOnProfile = true,
+    this.email,
+    this.password,
   });
 
   OnboardingState copyWith({
@@ -53,6 +65,12 @@ class OnboardingState {
     String? photoLocalPath,
     bool? acceptedTerms,
     String? verificationId,
+    String? dpUrl,
+    List<String>? galleryUrls,
+    Map<String, String>? socialLinks,
+    bool? showSocialOnProfile,
+    String? email,
+    String? password,
   }) =>
       OnboardingState(
         backendToken: backendToken ?? this.backendToken,
@@ -71,9 +89,14 @@ class OnboardingState {
         photoLocalPath: photoLocalPath ?? this.photoLocalPath,
         acceptedTerms: acceptedTerms ?? this.acceptedTerms,
         verificationId: verificationId ?? this.verificationId,
+        dpUrl: dpUrl ?? this.dpUrl,
+        galleryUrls: galleryUrls ?? this.galleryUrls,
+        socialLinks: socialLinks ?? this.socialLinks,
+        showSocialOnProfile: showSocialOnProfile ?? this.showSocialOnProfile,
+        email: email ?? this.email,
+        password: password ?? this.password,
       );
 
-  /// Get all data for logging/debugging
   Map<String, dynamic> getAllOnboardingData() {
     return {
       'name': firstName.isNotEmpty ? '${firstName} ${lastName}'.trim() : null,
@@ -83,9 +106,14 @@ class OnboardingState {
       'department_id': program.isNotEmpty ? program : null,
       'batch_year': year.isNotEmpty ? int.tryParse(year) : null,
       'interests': interests,
-      // ✅ Added I-Card URLs for debug/logging
       'front_icard_url': frontICardUrl,
       'back_icard_url': backICardUrl,
+      "dp": dpUrl,
+      "photos": galleryUrls,
+      "socials": socialLinks,
+      "show_social_on_profile": showSocialOnProfile,
+      'email': email,
+      'password': password != null ? "******" : null, // mask password
     };
   }
 }

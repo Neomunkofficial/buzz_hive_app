@@ -243,21 +243,23 @@ class _OnboardingNameScreenState extends State<OnboardingNameScreen> {
                       const SizedBox(height: 18),
 
                       // Gender / Vibe dropdown
+                      // Gender dropdown
                       DropdownButtonFormField<String>(
                         value: _gender,
-                        hint: const Text("Pick your vibe 🌈"),
+                        hint: const Text("Select your gender ⚧"),
                         items: [
-                          "He/Him",
-                          "She/Her",
-                          "They/Them",
-                          "Prefer not to say"
+                          {"label": "Male", "value": "male"},
+                          {"label": "Female", "value": "female"},
+                          {"label": "Other", "value": "other"},
+                          {"label": "Prefer not to say", "value": "prefer_not_to_say"},
                         ].map((g) {
                           return DropdownMenuItem<String>(
-                            value: g,
+                            value: g["value"],
                             child: Text(
-                              g,
+                              g["label"]!,
                               style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black),
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
                             ),
                           );
                         }).toList(),
@@ -267,8 +269,7 @@ class _OnboardingNameScreenState extends State<OnboardingNameScreen> {
                           filled: true,
                           fillColor: inputFill,
                           hintStyle: const TextStyle(fontFamily: "Font2"),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(color: borderColor),
@@ -285,13 +286,13 @@ class _OnboardingNameScreenState extends State<OnboardingNameScreen> {
                             ),
                           ),
                         ),
-                        dropdownColor:
-                        isDark ? Colors.grey.shade900 : Colors.white,
+                        dropdownColor: isDark ? Colors.grey.shade900 : Colors.white,
                         style: TextStyle(
                           fontFamily: "Font2",
                           color: isDark ? Colors.white : Colors.black,
                         ),
                       ),
+
 
                       const SizedBox(height: 30),
 

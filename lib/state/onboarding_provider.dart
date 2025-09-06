@@ -30,33 +30,33 @@ class OnboardingProvider extends ChangeNotifier {
   void setCollege(String v)       { _state = _state.copyWith(collegeId: v); notifyListeners(); }
   void setProgram(String v)       { _state = _state.copyWith(program: v); notifyListeners(); }
   void setYear(String v)          { _state = _state.copyWith(year: v); notifyListeners(); }
-  void toggleInterest(String id)  {
-    final list = [..._state.interests];
-    list.contains(id) ? list.remove(id) : list.add(id);
-    _state = _state.copyWith(interests: list); notifyListeners();
-  }
+  void toggleInterest(String id)  {final list = [..._state.interests];list.contains(id) ? list.remove(id) : list.add(id);_state = _state.copyWith(interests: list); notifyListeners();}
   void setPhotoPath(String? p)    { _state = _state.copyWith(photoLocalPath: p); notifyListeners(); }
   void setConsent(bool v)         { _state = _state.copyWith(acceptedTerms: v); notifyListeners(); }
   void setVerificationId(String id) { _state = _state.copyWith(verificationId: id); notifyListeners(); }
   void setBackendToken(String? t) { _state = _state.copyWith(backendToken: t); notifyListeners(); }
 
   // ✅ NEW METHODS for I-Card
-  void setFrontICardUrl(String url) {
-    _state = _state.copyWith(frontICardUrl: url);
-    notifyListeners();
-  }
+  void setFrontICardUrl(String url) {_state = _state.copyWith(frontICardUrl: url);notifyListeners();}
+  void setBackICardUrl(String url) {_state = _state.copyWith(backICardUrl: url);notifyListeners();}
 
-  void setBackICardUrl(String url) {
-    _state = _state.copyWith(backICardUrl: url);
-    notifyListeners();
-  }
+  // ✅ NEW METHODS for Intrests
+  void setInterests(List<String> list) {_state = _state.copyWith(interests: list);debugPrint("✅ Interests stored in provider: ${_state.interests}");notifyListeners();}
 
-  void setInterests(List<String> list) {
-    _state = _state.copyWith(interests: list);
-    debugPrint("✅ Interests stored in provider: ${_state.interests}");
-    notifyListeners();
-  }
+  // ✅ NEW METHODS for Photoes upload
+  void setDpUrl(String url) {_state = _state.copyWith(dpUrl: url);debugPrint("✅ DP URL stored in provider: $url");notifyListeners();}
+  void setGalleryUrls(List<String> urls) {_state = _state.copyWith(galleryUrls: urls);debugPrint("✅ Gallery URLs stored in provider: $urls");notifyListeners();}
+  void removeGalleryUrl(String url) {final list = [..._state.galleryUrls]..remove(url);_state = _state.copyWith(galleryUrls: list);notifyListeners();}
 
+  // ✅ New methods for socials
+  void setSocialLinks(Map<String, String> links) { _state = _state.copyWith(socialLinks: links);debugPrint("✅ Social links stored in provider: $links");notifyListeners();}
+  void updateSocialLink(String platform, String url) {final newLinks = {..._state.socialLinks, platform: url}; _state = _state.copyWith(socialLinks: newLinks);debugPrint("✅ Updated social link: $platform -> $url");notifyListeners();}
+  void removeSocialLink(String platform) {final newLinks = {..._state.socialLinks};newLinks.remove(platform);_state = _state.copyWith(socialLinks: newLinks);debugPrint("✅ Removed social link: $platform");notifyListeners();}
+  void setShowSocialOnProfile(bool value) {_state = _state.copyWith(showSocialOnProfile: value);debugPrint("✅ Show social on profile: $value");notifyListeners();}
+
+  // ✅ New methods for email and pass
+  void setEmail(String v) {_state = _state.copyWith(email: v);notifyListeners();}
+  void setPassword(String v) {_state = _state.copyWith(password: v);notifyListeners();}
 
 
 
@@ -91,6 +91,12 @@ class OnboardingProvider extends ChangeNotifier {
         // ✅ Include uploaded I-Card URLs
         'front_icard_url': _state.frontICardUrl,
         'back_icard_url': _state.backICardUrl,
+        'dp': _state.dpUrl,
+        'photos': _state.galleryUrls.isNotEmpty ? _state.galleryUrls : null,
+        'socials': _state.socialLinks.isNotEmpty ? _state.socialLinks : null,
+        'show_social_on_profile': _state.showSocialOnProfile,
+        'email': _state.email,
+        'password': _state.password,
       };
 
       print("🚀 Submitting onboarding data:");

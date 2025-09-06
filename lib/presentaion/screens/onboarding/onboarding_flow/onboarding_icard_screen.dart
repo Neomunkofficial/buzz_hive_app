@@ -43,34 +43,35 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
   Future<String?> _uploadICard(File file) async {
     try {
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
-
       final phone = context.read<OnboardingProvider>().phone;
+
       if (phone.isEmpty) {
         debugPrint("❌ Phone number is missing in OnboardingProvider");
         return null;
       }
 
       const String baseUrl = "http://192.168.1.10:5000";
-
       final uri = Uri.parse("$baseUrl/api/upload/icard/$phone");
-      debugPrint("📡 Uploading I-Card to: $uri");
 
       final request = http.MultipartRequest("POST", uri)
         ..headers["Authorization"] = "Bearer $token"
-        ..files.add(await http.MultipartFile.fromPath("icard", file.path)); // ✅ must be "icard"
+        ..files.add(await http.MultipartFile.fromPath("icard", file.path));
 
       final response = await request.send();
+      final respStr = await response.stream.bytesToString();
 
       if (response.statusCode == 200) {
-        final respStr = await response.stream.bytesToString();
         final data = json.decode(respStr);
-
-        // ✅ Fix: use `fileUrl` and prepend baseUrl
-        final url = "$baseUrl${data["fileUrl"]}";
-        debugPrint("✅ Uploaded I-Card: $url");
-        return url;
+        if (data["fileUrl"] != null) {
+          final url = "$baseUrl${data["fileUrl"]}";
+          debugPrint("✅ Uploaded I-Card: $url");
+          return url;
+        } else {
+          debugPrint("❌ Missing fileUrl in response: $respStr");
+          return null;
+        }
       } else {
-        debugPrint("❌ Upload failed ${response.statusCode}");
+        debugPrint("❌ Upload failed ${response.statusCode} $respStr");
         return null;
       }
     } catch (e) {
@@ -78,7 +79,6 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
       return null;
     }
   }
-
 
   void _onSubmit() async {
     if (_frontImage == null || _backImage == null) {
@@ -88,13 +88,8 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
       return;
     }
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      debugPrint("❌ User not logged in");
-      return;
-    }
+    setState(() {}); // to trigger loading state if you add it later
 
-    // Upload both images
     final frontUrl = await _uploadICard(_frontImage!);
     final backUrl = await _uploadICard(_backImage!);
 
@@ -103,126 +98,16 @@ class _OnboardingICardScreenState extends State<OnboardingICardScreen> {
       provider.setFrontICardUrl(frontUrl);
       provider.setBackICardUrl(backUrl);
 
-      debugPrint("✅ Front I-Card URL saved: $frontUrl");
-      debugPrint("✅ Back I-Card URL saved: $backUrl");
-
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => const OnboardingInterestsScreen(
-            interests: [
-              "Engineering",
-              "Medicine & Healthcare",
-              "Business & Management",
-              "Arts & Humanities",
-              "Law & Policy",
-              "Commerce & Finance",
-              "Pure Sciences",
-              "Artificial Intelligence (AI)",
-              "Machine Learning (ML)",
-              "Cloud Computing",
-              "Cybersecurity",
-              "Web Development",
-              "App Development",
-              "Blockchain & Web3",
-              "Data Science",
-              "Competitive Programming",
-              "Robotics",
-              "Entrepreneurship / Startups",
-              "Marketing & Advertising",
-              "Finance & Investing",
-              "Public Speaking & Debating",
-              "Model United Nations (MUN)",
-              "Consulting",
-              "Content Creation",
-              "Cricket",
-              "Football",
-              "Basketball",
-              "Volleyball",
-              "Kabaddi",
-              "Hockey",
-              "Badminton",
-              "Tennis",
-              "Table Tennis",
-              "Swimming",
-              "Athletics",
-              "Martial Arts",
-              "Chess",
-              "Gym & Working Out",
-              "Yoga & Meditation",
-              "Running / Marathons",
-              "Cycling",
-              "Trekking & Hiking",
-              "Calisthenics",
-              "Singing (Indian Classical)",
-              "Singing (Western)",
-              "Bollywood Music",
-              "Playing Guitar",
-              "Playing Piano / Keyboard",
-              "Playing Drums / Tabla",
-              "DJing & Music Production",
-              "Bollywood Dance",
-              "Hip-Hop",
-              "Bhangra / Gidda",
-              "Indian Classical Dance",
-              "Contemporary Dance",
-              "Sketching & Painting",
-              "Digital Art & Design",
-              "Photography",
-              "Videography & Filmmaking",
-              "Creative Writing",
-              "Poetry & Shayri",
-              "Blogging",
-              "Stand-up Comedy",
-              "Theatre & Dramatics",
-              "Bollywood Movies",
-              "Hollywood Movies",
-              "Regional Cinema",
-              "Anime",
-              "K-Dramas",
-              "Sci-Fi & Fantasy",
-              "Thrillers & Mystery",
-              "Web Series",
-              "Desi Hip Hop",
-              "Pop / EDM",
-              "Rock / Metal",
-              "Indie & Alternative",
-              "Lo-Fi & Chillhop",
-              "Sufi & Classical",
-              "Fiction Novels",
-              "Non-Fiction / Biographies",
-              "Fantasy & Sci-Fi Books",
-              "Comic Books & Graphic Novels",
-              "Podcasts",
-              "YouTube & Vlogging",
-              "Memes & Pop Culture",
-              "PC/Console Gaming",
-              "FPS Games",
-              "Battle Royale Games",
-              "Story-driven Games (RPG)",
-              "Sports Games (FIFA, etc.)",
-              "Mobile Gaming",
-              "Strategy Games",
-              "Foodie / Exploring Cafes",
-              "Cooking & Baking",
-              "Street Food",
-              "Coffee / Chai Lover",
-              "Backpacking",
-              "Road Trips",
-              "Exploring Cities",
-              "Nature & Wildlife",
-              "Volunteering",
-              "Animal Lover / Petting",
-              "Environmental Causes",
-              "Clubbing & Partying",
-              "Organizing Events",
-              "Attending College Fests",
-              "Fashion & Styling",
-              "Gardening",
-              "Astrology",
-              "DIY & Crafts",
-              "Automobiles (Cars & Bikes)"
-            ],
+            interests: ["Music",
+              "Dance",
+              "Sports",
+              "Coding",
+              "Design",
+              "Photography",], // same interests list
           ),
         ),
       );

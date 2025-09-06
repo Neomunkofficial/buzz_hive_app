@@ -7,6 +7,7 @@ import '../../../../state/onboarding_provider.dart';
 import '../../../widgets/app_button.dart';
 import '../../main_navigation_screen.dart';
 import '../onboarding_flow/widgets/onboarding_progress.dart';
+import 'onboarding_password_finalscreen.dart';
 // NEXT screen: update accordingly
 // import 'next_onboarding_screen.dart';
 
@@ -63,40 +64,27 @@ class _OnboardingSocialMediaLinkingScreenState extends State<OnboardingSocialMed
   }
 
   Future<void> _submitAndNext() async {
-    // Save in provider for state continuity
     final onboarding = context.read<OnboardingProvider>();
-    // onboarding.setSocialMediaLinks(_socialLinks);
-    // onboarding.setShowSocialOnProfile(_showSocialOnProfile);
 
-    // 🔹 TODO: Integrate with backend here
-    // Example (pseudo-code, replace with real API client):
-    // await UserRepository(ApiClient()).updateSocialMediaLinks(
-    //   socialLinks: _socialLinks,
-    //   showOnProfile: _showSocialOnProfile,
-    // );
+    // ✅ Save in provider
+    onboarding.setSocialLinks(_socialLinks);
+    onboarding.setShowSocialOnProfile(_showSocialOnProfile);
 
-    // Navigate to main app
+    // ✅ Navigate to next (final or main app)
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => const MainNavigationScreen(),
+        builder: (_) => const OnboardingPasswordScreen(),
       ),
     );
 
-    // For now, just show success message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Social media preferences saved!")),
     );
   }
 
+
   void _skipStep() {
-    // Navigate to next screen without saving any social media links
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => NextOnboardingScreen(),
-    //   ),
-    // );
 
     // For now, just show skip message
     ScaffoldMessenger.of(context).showSnackBar(
@@ -402,7 +390,7 @@ class _OnboardingSocialMediaLinkingScreenState extends State<OnboardingSocialMed
               // Continue Button using your AppButton
               Center(
                 child: AppButton(
-                  text: "Buzz In ✓",
+                  text: "Lock it in ➝",
                   backgroundColor: AppColors.primaryYellow,
                   textColor: Colors.black,
                   width: size.width * 0.6,
